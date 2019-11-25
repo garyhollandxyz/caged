@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-
+import { Box, Button, Container, Paper, Typography } from "@material-ui/core";
 const naturalNotes = ["A", "B", "C", "D", "E", "F", "G"];
 
 const shapes = ["C", "A", "G", "E", "D"];
@@ -15,18 +15,27 @@ export const App = () => {
   const [shape, setShape] = useState(getRandomShape());
 
   return (
-    <>
-      <h1>
-        Play a {root} major chord with the {shape} shape
-      </h1>
-      <button
-        onClick={() => {
-          setRoot(getRandomNote);
-          setShape(getRandomShape);
-        }}
-      >
-        Another!
-      </button>
-    </>
+    <Container>
+      <Paper>
+        <Typography variant="h1" component="h1">
+          CAGED practice app
+        </Typography>
+        <Box variant="">
+          <Typography variant="body1">
+            Play a {root} chord using a {shape} shape
+          </Typography>
+        </Box>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => {
+            setRoot(getRandomNote);
+            setShape(getRandomShape);
+          }}
+        >
+          Another!
+        </Button>
+      </Paper>
+    </Container>
   );
 };
