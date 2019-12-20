@@ -8,10 +8,14 @@ import {
   Form,
   Grid
 } from 'semantic-ui-react'
+
+import { useToggleState } from '../hooks'
+
 const naturalNotes = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
 const modifiers = ['♯', '♭', '']
 const shapes = ['C', 'A', 'G', 'E', 'D']
 const chordTypes = ['major', '7']
+const scaleTypes = ['major', 'major pentatonic', 'minor pentatonic']
 
 const standardiseName = name => {
   switch (name) {
@@ -32,44 +36,70 @@ const getRandomItem = array => array[Math.floor(Math.random() * array.length)]
 
 const getRandomShape = () => getRandomItem(shapes)
 
-const ImportantBit = ({ text }) => (
+const Emphasised = ({ text }) => (
   <span style={{ fontSize: '2rem' }}>{text}</span>
 )
 
 export const App = () => {
   const getRandomNote = () => {
     const naturalNote = getRandomItem(naturalNotes)
-    if (!includeSharpsAndFlats) return standardiseName(naturalNote)
+
     const modifier = getRandomItem(modifiers)
     const note = `${naturalNote}${modifier}`
     return standardiseName(note)
   }
+  const getAllowedChordTypes = () => {
+    const chordTypes = []
+    if (includeMajorChords) chordTypes.push('Major chord')
+    if (include7thChords) chordTypes.push('7 chord')
+    return chordTypes
+  }
+  const getAllowedScaleTypes = () => {
+    const scaleTypes = []
+    if (includeMajorScales) scaleTypes.push('Major scale')
+    if (includeMajorPentatonicScales) scaleTypes.push('Major penatonic scale')
+    if (includeMinorPentatonicScales) scaleTypes.push('Minor pentatonic scale')
+    return scaleTypes
+  }
+  const getRandomChordOrScaleType = () => {
+    const chords = getAllowedChordTypes()
+    const scales = getAllowedScaleTypes()
 
-  const getRandomChordType = () => {
-    if (!includeMinors) return 'major'
-
-    return getRandomItem(chordTypes)
+    return getRandomItem([...chords, ...scales])
   }
 
-  const [includeMinors, setIncludeMinors] = useState(false)
-  const toggleMinors = () => setIncludeMinors(!includeMinors)
-  const [includeSharpsAndFlats, setIncludeSharpsAndFlats] = useState(true)
-  const toggleSharpsAndFlats = () =>
-    setIncludeSharpsAndFlats(!includeSharpsAndFlats)
+  // Chord types
+  const [includeMajorChords, toggleIncludeMajorChords] = useToggleState(true)
+  const [include7thChords, toggleInclude7thChords] = useToggleState(false)
+
+  // Scale types
+  const [includeMajorScales, toggleIncludeMajorScales] = useToggleState(true)
+  const [
+    includeMajorPentatonicScales,
+    toggleIncludeMajorPentatonicScales
+  ] = useToggleState(true)
+  const [
+    includeMinorPentatonicScales,
+    toggleIncludeMinorPentatonicScales
+  ] = useToggleState(true)
+
   const [root, setRoot] = useState(getRandomNote())
   const [shape, setShape] = useState(getRandomShape())
-  const [chordType, setChordType] = useState(getRandomChordType())
+
+  const [chordOrScaleType, setChordOrScaleType] = useState(
+    getRandomChordOrScaleType()
+  )
 
   return (
     <Container style={{ paddingTop: '1rem' }} textAlign="center">
       <Header as="h1" content="CAGED practice" />
       <p> Play </p>
       <p>
-        <ImportantBit text={`${root} ${chordType}`} />
+        <Emphasised text={`${root} ${chordOrScaleType}`} />
       </p>
       <p>with the</p>
       <p>
-        <ImportantBit text={shape} />
+        <Emphasised text={shape} />
       </p>
       <p>shape</p>
 
@@ -81,36 +111,97 @@ export const App = () => {
         onClick={() => {
           setRoot(getRandomNote)
           setShape(getRandomShape)
-          setChordType(getRandomChordType)
+          setChordOrScaleType(getRandomChordOrScaleType)
         }}
+        disabled={
+          !includeMajorChords &&
+          !include7thChords &&
+          !includeMajorScales &&
+          !includeMajorPentatonicScales &&
+          !includeMinorPentatonicScales
+        }
       />
 
-      <div>
-        <div
+      <Grid centered>
+        <Grid.Column
+          textAlign="center"
+          width={8}
           style={{
-            display: 'inline-block',
-            textAlign: 'left',
             marginTop: '1rem'
           }}
         >
-          <Form.Field
-            control={Checkbox}
-            toggle
-            label="Include ♯s and ♭s"
-            style={{ marginTop: '1rem' }}
-            checked={includeSharpsAndFlats}
-            onChange={toggleSharpsAndFlats}
-          />
-          <Form.Field
-            control={Checkbox}
-            toggle
-            label="Include 7ths"
-            style={{ marginTop: '1rem' }}
-            checked={includeMinors}
-            onChange={toggleMinors}
-          />
-        </div>
-      </div>
+          <div
+            style={{
+              display: 'inline-block',
+              textAlign: 'left',
+              marginTop: '1rem'
+            }}
+          >
+            <Header as="h2" content="Chords" />
+            <Form.Field
+              control={Checkbox}
+              toggle
+              label="Major"
+              style={{
+                marginTop: '1rem',
+                display: 'inline-block',
+                textAlign: 'left'
+              }}
+              checked={includeMajorChords}
+              onChange={toggleIncludeMajorChords}
+            />
+            <Form.Field
+              control={Checkbox}
+              toggle
+              label="7th"
+              style={{ marginTop: '1rem' }}
+              checked={include7thChords}
+              onChange={toggleInclude7thChords}
+            />
+          </div>
+        </Grid.Column>
+        <Grid.Column
+          textAlign="center"
+          width={8}
+          style={{
+            marginTop: '1rem'
+          }}
+        >
+          <div
+            style={{
+              display: 'inline-block',
+              textAlign: 'left',
+              marginTop: '1rem'
+            }}
+          >
+            <Header as="h2" content="Scales" />
+            <Form.Field
+              control={Checkbox}
+              toggle
+              label="Major"
+              style={{ marginTop: '1rem' }}
+              checked={includeMajorScales}
+              onChange={toggleIncludeMajorScales}
+            />
+            <Form.Field
+              control={Checkbox}
+              toggle
+              label="Major pentatonic"
+              style={{ marginTop: '1rem' }}
+              checked={includeMajorPentatonicScales}
+              onChange={toggleIncludeMajorPentatonicScales}
+            />
+            <Form.Field
+              control={Checkbox}
+              toggle
+              label="Minor pentatonic"
+              style={{ marginTop: '1rem' }}
+              checked={includeMinorPentatonicScales}
+              onChange={toggleIncludeMinorPentatonicScales}
+            />
+          </div>
+        </Grid.Column>
+      </Grid>
     </Container>
   )
 }
